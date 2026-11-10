@@ -1,98 +1,136 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import { ScreenContainer, Typography, Button } from '@/components/ui';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Spacing, BorderRadius } from '@/constants/spacing';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+export default function WelcomeScreen() {
+  const router = useRouter();
+  const { colors, isDark } = useAppTheme();
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+    <ScreenContainer withPadding contentContainerStyle={styles.container}>
+      {/* Top Branding Section */}
+      <View style={styles.brandingSection}>
+        <View
+          style={[
+            styles.badge,
+            {
+              backgroundColor: colors.accentSubtle,
+              borderColor: isDark ? colors.border : colors.accentSubtle,
+            },
+          ]}
+        >
+          <Typography variant="label" color={colors.accentSoft}>
+            Private 1-to-1 Space
+          </Typography>
+        </View>
 
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+        <Typography variant="display" style={styles.title}>
+          LoveByte
+        </Typography>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+        <Typography variant="body" color={colors.textSecondary} style={styles.subtitle}>
+          A calm, private messaging space designed exclusively for the two of us.
+        </Typography>
+      </View>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+      {/* Middle Brand Monogram */}
+      <View style={styles.graphicContainer}>
+        <View
+          style={[
+            styles.avatarCircle,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          <Typography variant="title" color={colors.accent} style={styles.heartGlyph}>
+            ♥
+          </Typography>
+        </View>
+      </View>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+      {/* Bottom Action Section */}
+      <View style={styles.actionSection}>
+        <Button
+          title="Sign In"
+          variant="primary"
+          size="lg"
+          fullWidth
+          onPress={() => router.push('/(auth)/login')}
+          style={styles.primaryButton}
+        />
+
+        <Button
+          title="Create an Account"
+          variant="outline"
+          size="lg"
+          fullWidth
+          onPress={() => router.push('/(auth)/register')}
+        />
+
+        <Typography variant="timestamp" align="center" style={styles.disclaimer}>
+          Encrypted, persistent, and reserved for exactly two users.
+        </Typography>
+      </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.xl,
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
+  brandingSection: {
     alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+    paddingTop: Spacing.xxl,
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+  badge: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    marginBottom: Spacing.base,
   },
   title: {
+    letterSpacing: -0.5,
+    marginBottom: Spacing.sm,
+  },
+  subtitle: {
     textAlign: 'center',
+    maxWidth: 290,
+    lineHeight: 22,
   },
-  code: {
-    textTransform: 'uppercase',
+  graphicContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.xl,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  avatarCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heartGlyph: {
+    fontSize: 32,
+    lineHeight: 36,
+  },
+  actionSection: {
+    gap: Spacing.md,
+    paddingBottom: Spacing.base,
+  },
+  primaryButton: {
+    marginBottom: Spacing.xs,
+  },
+  disclaimer: {
+    marginTop: Spacing.xs,
+    fontSize: 12,
   },
 });

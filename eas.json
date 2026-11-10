@@ -1,0 +1,34 @@
+{
+  "cli": {
+    "version": ">= 12.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://lovebyte-real-time-chat-app.onrender.com",
+        "EXPO_PUBLIC_SOCKET_URL": "https://lovebyte-real-time-chat-app.onrender.com"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://lovebyte-real-time-chat-app.onrender.com",
+        "EXPO_PUBLIC_SOCKET_URL": "https://lovebyte-real-time-chat-app.onrender.com"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
+
