@@ -4,10 +4,12 @@ import {
   TouchableOpacityProps,
   ActivityIndicator,
   StyleSheet,
+  View,
   ViewStyle,
 } from 'react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Typography } from './Typography';
+import { Icon, IconName } from './Icon';
 import { Spacing, BorderRadius } from '@/constants/spacing';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'accent';
@@ -20,6 +22,8 @@ export interface ButtonProps extends TouchableOpacityProps {
   loading?: boolean;
   disabled?: boolean;
   fullWidth?: boolean;
+  icon?: IconName;
+  iconPosition?: 'left' | 'right';
 }
 
 export function Button({
@@ -29,6 +33,8 @@ export function Button({
   loading = false,
   disabled = false,
   fullWidth = false,
+  icon,
+  iconPosition = 'left',
   style,
   onPress,
   ...props
@@ -47,8 +53,8 @@ export function Button({
         bg = isDisabled
           ? colors.buttonDisabled
           : isPressed
-          ? colors.primaryHover
-          : colors.primary;
+            ? colors.primaryHover
+            : colors.primary;
         break;
       case 'secondary':
         bg = isDisabled ? colors.buttonDisabled : colors.surface;
@@ -131,19 +137,48 @@ export function Button({
       {loading ? (
         <ActivityIndicator color={getTextColor()} size="small" />
       ) : (
-        <Typography
-          variant={getTextVariant()}
-          color={getTextColor()}
-          style={styles.text}
-        >
-          {title}
-        </Typography>
+        <View style={styles.contentRow}>
+          {icon && iconPosition === 'left' && (
+            <Icon
+              name={icon}
+              size={size === 'sm' ? 16 : size === 'lg' ? 20 : 18}
+              color={getTextColor()}
+              style={styles.leftIcon}
+            />
+          )}
+          <Typography
+            variant={getTextVariant()}
+            color={getTextColor()}
+            style={styles.text}
+          >
+            {title}
+          </Typography>
+          {icon && iconPosition === 'right' && (
+            <Icon
+              name={icon}
+              size={size === 'sm' ? 16 : size === 'lg' ? 20 : 18}
+              color={getTextColor()}
+              style={styles.rightIcon}
+            />
+          )}
+        </View>
       )}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
+  contentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  leftIcon: {
+    marginRight: Spacing.sm,
+  },
+  rightIcon: {
+    marginLeft: Spacing.sm,
+  },
   text: {
     letterSpacing: 0.2,
     fontWeight: '600',

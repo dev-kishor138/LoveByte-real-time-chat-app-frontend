@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ScreenContainer, Typography, Button, Input } from '@/components/ui';
+import { ScreenContainer, Typography, Button, Input, Icon } from '@/components/ui';
 import { Spacing, BorderRadius } from '@/constants/spacing';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useAuth } from '@/context/AuthContext';
@@ -13,11 +13,16 @@ import {
 
 export default function LoginScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ registered?: string }>();
-  const { colors } = useAppTheme();
+  const params = useLocalSearchParams<{
+    registered?: string;
+    verified?: string;
+    reset?: string;
+    email?: string;
+  }>();
+  const { colors, isDark } = useAppTheme();
   const { login } = useAuth();
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(params.email || '');
   const [password, setPassword] = useState('');
 
   const [fieldErrors, setFieldErrors] = useState<{
@@ -29,10 +34,14 @@ export default function LoginScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (params.registered === 'true') {
+    if (params.verified === 'true') {
+      setSuccessMessage('Email verified successfully! You can now sign in.');
+    } else if (params.reset === 'true') {
+      setSuccessMessage('Password reset successfully! Please sign in with your new password.');
+    } else if (params.registered === 'true') {
       setSuccessMessage('Account created successfully! Please sign in with your Gmail address.');
     }
-  }, [params.registered]);
+  }, [params.verified, params.reset, params.registered]);
 
   const handleEmailChange = (text: string) => {
     setEmail(text);
@@ -112,6 +121,15 @@ export default function LoginScreen() {
         } else if (err.statusCode === 401) {
           // Generic credential error to prevent account enumeration
           setApiError('Invalid email or password');
+        } else if (
+          err.statusCode === 403 &&
+          (err.message.includes('not verified') || (err as any).code === 'EMAIL_NOT_VERIFIED')
+        ) {
+          router.push({
+            pathname: '/(auth)/verify-email',
+            params: { email: email.trim().toLowerCase(), reason: 'unverified' },
+          });
+          return;
         } else if (err.statusCode === 429) {
           setApiError('Too many authentication attempts. Please try again later.');
         } else {
@@ -129,6 +147,21 @@ export default function LoginScreen() {
     <ScreenContainer scrollable withPadding contentContainerStyle={styles.container}>
       {/* Header */}
       <View style={styles.header}>
+        <View
+          style={[
+            styles.badge,
+            {
+              backgroundColor: colors.accentSubtle,
+              borderColor: isDark ? colors.border : colors.accentSubtle,
+            },
+          ]}
+        >
+          <Icon name="heart" size={13} color={colors.accentSoft} style={styles.badgeIcon} />
+          <Typography variant="label" color={colors.accentSoft}>
+            LoveByte
+          </Typography>
+        </View>
+
         <Typography variant="title" style={styles.title}>
           Welcome Back
         </Typography>
@@ -151,6 +184,7 @@ export default function LoginScreen() {
             ]}
             accessibilityRole="alert"
           >
+            <Icon name="check" size={16} color={colors.success} style={styles.bannerIcon} />
             <Typography variant="caption" color={colors.success} style={styles.bannerText}>
               {successMessage}
             </Typography>
@@ -169,6 +203,7 @@ export default function LoginScreen() {
             ]}
             accessibilityRole="alert"
           >
+            <Icon name="alert-circle" size={16} color={colors.error} style={styles.bannerIcon} />
             <Typography variant="caption" color={colors.error} style={styles.bannerText}>
               {apiError}
             </Typography>
@@ -199,6 +234,23 @@ export default function LoginScreen() {
           error={fieldErrors.password}
           editable={!isSubmitting}
         />
+
+        <View style={styles.forgotPasswordRow}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            disabled={isSubmitting}
+            onPress={() =>
+              router.push({
+                pathname: '/(auth)/forgot-password',
+                params: email.trim() ? { email: email.trim() } : undefined,
+              })
+            }
+          >
+            <Typography variant="caption" color={colors.accent} style={styles.forgotPasswordText}>
+              Forgot password?
+            </Typography>
+          </TouchableOpacity>
+        </View>
 
         <Button
           title="Sign In"
@@ -242,13 +294,27 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: 'space-between',
-    paddingVertical: Spacing.xl,
-    minHeight: '100%',
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingVertical: Spacing.lg,
+    paddingBottom: Spacing.xxl + Spacing.lg,
   },
   header: {
-    paddingTop: Spacing.lg,
-    marginBottom: Spacing.lg,
+    paddingTop: Spacing.sm,
+    marginBottom: Spacing.base,
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: Spacing.sm + 2,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    marginBottom: Spacing.md,
+  },
+  badgeIcon: {
+    marginRight: Spacing.xs,
   },
   title: {
     marginBottom: Spacing.xs,
@@ -258,15 +324,29 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.base,
   },
   banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     marginBottom: Spacing.md,
   },
+  bannerIcon: {
+    marginRight: Spacing.sm,
+  },
   bannerText: {
+    flex: 1,
     lineHeight: 18,
     fontWeight: '500',
+  },
+  forgotPasswordRow: {
+    alignItems: 'flex-end',
+    marginTop: -Spacing.xs,
+    marginBottom: Spacing.md,
+  },
+  forgotPasswordText: {
+    fontWeight: '600',
   },
   submitButton: {
     marginTop: Spacing.sm,

@@ -305,4 +305,113 @@ describe('Auth API Service (Stage 2B)', () => {
       );
     });
   });
+
+  describe('Phase 4: Email Verification, Resend & Password Recovery API', () => {
+    describe('authApi.verifyEmail', () => {
+      it('normalizes email, trims code, and posts to /api/auth/verify-email', async () => {
+        let capturedUrl = '';
+        let capturedPayload: any = null;
+
+        rawAuthTransport.post = (async (url: string, data?: any) => {
+          capturedUrl = url;
+          capturedPayload = data;
+          return {
+            status: 200,
+            data: { success: true, message: 'Email verified successfully.' },
+          };
+        }) as any;
+
+        const result = await authApi.verifyEmail({
+          email: '  SweetHeart@GMAIL.COM  ',
+          code: '  123456  ',
+        });
+
+        assert.strictEqual(capturedUrl, '/api/auth/verify-email');
+        assert.strictEqual(capturedPayload.email, 'sweetheart@gmail.com');
+        assert.strictEqual(capturedPayload.code, '123456');
+        assert.strictEqual(result.success, true);
+        assert.strictEqual(result.message, 'Email verified successfully.');
+      });
+    });
+
+    describe('authApi.resendOtp', () => {
+      it('normalizes email and posts type to /api/auth/resend-otp', async () => {
+        let capturedUrl = '';
+        let capturedPayload: any = null;
+
+        rawAuthTransport.post = (async (url: string, data?: any) => {
+          capturedUrl = url;
+          capturedPayload = data;
+          return {
+            status: 200,
+            data: { message: 'A new code has been sent to your email.' },
+          };
+        }) as any;
+
+        const result = await authApi.resendOtp({
+          email: 'TestUser@Gmail.Com',
+          type: 'EMAIL_VERIFICATION',
+        });
+
+        assert.strictEqual(capturedUrl, '/api/auth/resend-otp');
+        assert.strictEqual(capturedPayload.email, 'testuser@gmail.com');
+        assert.strictEqual(capturedPayload.type, 'EMAIL_VERIFICATION');
+        assert.strictEqual(result.message, 'A new code has been sent to your email.');
+      });
+    });
+
+    describe('authApi.forgotPassword', () => {
+      it('normalizes email and posts to /api/auth/forgot-password', async () => {
+        let capturedUrl = '';
+        let capturedPayload: any = null;
+
+        rawAuthTransport.post = (async (url: string, data?: any) => {
+          capturedUrl = url;
+          capturedPayload = data;
+          return {
+            status: 200,
+            data: { message: 'If an account exists with this email, a password reset code has been sent.' },
+          };
+        }) as any;
+
+        const result = await authApi.forgotPassword({
+          email: '  RecoverMe@GMAIL.COM  ',
+        });
+
+        assert.strictEqual(capturedUrl, '/api/auth/forgot-password');
+        assert.strictEqual(capturedPayload.email, 'recoverme@gmail.com');
+        assert.strictEqual(result.message, 'If an account exists with this email, a password reset code has been sent.');
+      });
+    });
+
+    describe('authApi.resetPassword', () => {
+      it('normalizes email, trims code, preserves new password verbatim, and posts to /api/auth/reset-password', async () => {
+        let capturedUrl = '';
+        let capturedPayload: any = null;
+
+        rawAuthTransport.post = (async (url: string, data?: any) => {
+          capturedUrl = url;
+          capturedPayload = data;
+          return {
+            status: 200,
+            data: { success: true, message: 'Password reset successfully.' },
+          };
+        }) as any;
+
+        const rawPassword = '  NewSecureP@ssw0rd987!#  ';
+        const result = await authApi.resetPassword({
+          email: '  User@GMAIL.COM  ',
+          code: '  654321  ',
+          newPassword: rawPassword,
+        });
+
+        assert.strictEqual(capturedUrl, '/api/auth/reset-password');
+        assert.strictEqual(capturedPayload.email, 'user@gmail.com');
+        assert.strictEqual(capturedPayload.code, '654321');
+        assert.strictEqual(capturedPayload.newPassword, rawPassword);
+        assert.strictEqual(result.success, true);
+        assert.strictEqual(result.message, 'Password reset successfully.');
+      });
+    });
+  });
 });

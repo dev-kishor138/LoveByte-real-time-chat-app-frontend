@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Typography } from '@/components/ui/Typography';
+import { Icon } from '@/components/ui/Icon';
 import { Spacing, BorderRadius } from '@/constants/spacing';
 
 export interface EditingMessage {
@@ -146,9 +147,7 @@ export function MessageComposer({
             accessibilityRole="button"
             accessibilityLabel="Cancel editing"
           >
-            <Typography variant="bodyMedium" color={colors.textMuted} style={styles.cancelEditText}>
-              ✕
-            </Typography>
+            <Icon name="x" size={16} color={colors.textMuted} />
           </TouchableOpacity>
         </View>
       )}
@@ -209,13 +208,11 @@ export function MessageComposer({
           {isSubmitting ? (
             <ActivityIndicator size="small" color={colors.primaryForeground} />
           ) : (
-            <Typography
-              variant="bodyMedium"
+            <Icon
+              name={isEditing ? 'check' : 'send'}
+              size={18}
               color={canSubmit ? colors.primaryForeground : colors.textDisabled}
-              style={styles.sendIcon}
-            >
-              {isEditing ? '✓' : '↑'}
-            </Typography>
+            />
           )}
         </TouchableOpacity>
       </View>
@@ -268,7 +265,7 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     flex: 1,
-    minHeight: 42,
+    minHeight: 44,
     maxHeight: 120,
     borderRadius: BorderRadius.xl,
     borderWidth: 1,
@@ -288,9 +285,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   sendButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },

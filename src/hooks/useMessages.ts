@@ -154,10 +154,8 @@ export function useMessages(conversationId: string): UseMessagesResult {
         }
         hasInitialLoadedRef.current = true;
 
-        // Trigger queue processing for eligible messages if socket is connected
-        if (socketClient.isConnected()) {
-          queueProcessor.processConversationQueue(conversationId).catch(() => {});
-        }
+        // Trigger queue processing for eligible messages upon successful conversation load (independent of socket state)
+        queueProcessor.processConversationQueue(conversationId).catch(() => {});
 
         // Mark incoming messages as read upon viewing
         const hasUnreadFromPartner = clientMsgs.some(
@@ -504,7 +502,6 @@ export function useMessages(conversationId: string): UseMessagesResult {
       const nowIso = new Date().toISOString();
       const opGen = sessionManager.getGenerationId();
       const targetConvId = conversationId;
-      const isOnline = socketClient.isConnected();
 
       const optimisticMsg: ClientMessage = {
         id: tempId,
@@ -523,7 +520,7 @@ export function useMessages(conversationId: string): UseMessagesResult {
         readAt: null,
         createdAt: nowIso,
         updatedAt: nowIso,
-        localStatus: isOnline ? 'sending' : 'pending',
+        localStatus: 'sending',
       };
 
       // 1. Persist to offline queue before network delivery
@@ -535,7 +532,7 @@ export function useMessages(conversationId: string): UseMessagesResult {
         type: 'TEXT',
         content: trimmed,
         createdAt: nowIso,
-        localStatus: isOnline ? 'sending' : 'pending',
+        localStatus: 'sending',
         retryCount: 0,
       };
       await messageQueue.enqueue(queuedItem).catch((err) => {
@@ -558,11 +555,6 @@ export function useMessages(conversationId: string): UseMessagesResult {
         createdAt: nowIso,
       };
       updateConversationPreview(conversationId, preview);
-
-      // If offline, return optimistic message immediately without blocking UI
-      if (!isOnline) {
-        return optimisticMsg;
-      }
 
       try {
         const serverMsg = await queueProcessor.processMessage(queuedItem);

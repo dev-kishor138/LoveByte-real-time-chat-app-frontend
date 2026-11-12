@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   ScrollView,
@@ -6,6 +6,7 @@ import {
   Platform,
   StyleSheet,
   ViewStyle,
+  Keyboard,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,6 +19,10 @@ export interface ScreenContainerProps {
   withPadding?: boolean;
   style?: ViewStyle;
   contentContainerStyle?: ViewStyle;
+  keyboardAvoiding?: boolean;
+  keyboardBehavior?: 'padding' | 'height' | 'position';
+  keyboardVerticalOffset?: number;
+  keyboardShouldPersistTaps?: 'always' | 'never' | 'handled';
 }
 
 export function ScreenContainer({
@@ -26,9 +31,29 @@ export function ScreenContainer({
   withPadding = true,
   style,
   contentContainerStyle,
+  keyboardAvoiding,
+  keyboardBehavior,
+  keyboardVerticalOffset = 0,
+  keyboardShouldPersistTaps = 'handled',
 }: ScreenContainerProps) {
   const { colors, isDark } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setIsKeyboardVisible(true)
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setIsKeyboardVisible(false)
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const containerPadding: ViewStyle = withPadding
     ? {
@@ -36,9 +61,15 @@ export function ScreenContainer({
       }
     : {};
 
+  // On Android with softwareKeyboardLayoutMode="resize", the window resizes natively
+  // to sit above the keyboard. Retaining bottom insets when the keyboard is open causes
+  // redundant spacing or input clipping.
+  const effectiveBottomInset =
+    Platform.OS === 'android' && isKeyboardVisible ? 0 : insets.bottom;
+
   const safeAreaStyle: ViewStyle = {
     paddingTop: insets.top,
-    paddingBottom: insets.bottom,
+    paddingBottom: effectiveBottomInset,
     paddingLeft: insets.left,
     paddingRight: insets.right,
   };
@@ -59,7 +90,7 @@ export function ScreenContainer({
     <ScrollView
       style={styles.scroll}
       contentContainerStyle={[styles.scrollContent, containerPadding, contentContainerStyle]}
-      keyboardShouldPersistTaps="handled"
+      keyboardShouldPersistTaps={keyboardShouldPersistTaps}
       showsVerticalScrollIndicator={false}
     >
       {children}
@@ -68,6 +99,27 @@ export function ScreenContainer({
     <View style={[styles.fixedContent, containerPadding, contentContainerStyle]}>
       {children}
     </View>
+  );
+
+  // Platform-aware keyboard avoidance: On Android with resize mode, native window resizing
+  // handles keyboard adjustment. On iOS, KeyboardAvoidingView provides smooth padding.
+  const shouldAvoidKeyboard =
+    keyboardAvoiding !== undefined
+      ? keyboardAvoiding
+      : scrollable && Platform.OS === 'ios';
+
+  const defaultBehavior = Platform.OS === 'ios' ? 'padding' : undefined;
+
+  const renderedContent = shouldAvoidKeyboard ? (
+    <KeyboardAvoidingView
+      style={styles.keyboardView}
+      behavior={keyboardBehavior || defaultBehavior}
+      keyboardVerticalOffset={keyboardVerticalOffset}
+    >
+      {content}
+    </KeyboardAvoidingView>
+  ) : (
+    content
   );
 
   return (
@@ -81,12 +133,7 @@ export function ScreenContainer({
       ]}
     >
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        {content}
-      </KeyboardAvoidingView>
+      {renderedContent}
     </View>
   );
 }

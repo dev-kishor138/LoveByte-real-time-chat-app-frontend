@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ScreenContainer, Typography, Button, Input } from '@/components/ui';
+import { ScreenContainer, Typography, Button, Input, Icon } from '@/components/ui';
 import { Spacing, BorderRadius } from '@/constants/spacing';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { authApi } from '@/services/api';
@@ -15,7 +15,7 @@ import {
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -94,10 +94,10 @@ export default function RegisterScreen() {
     setIsSubmitting(true);
     try {
       await authApi.register({ email, password });
-      // Successfully registered (HTTP 201). Navigate to login screen with registered=true.
+      // Successfully registered (HTTP 201). Navigate to verification screen.
       router.replace({
-        pathname: '/(auth)/login',
-        params: { registered: 'true' },
+        pathname: '/(auth)/verify-email',
+        params: { email: email.trim().toLowerCase(), registered: 'true' },
       });
     } catch (err: unknown) {
       if (err instanceof ApiError) {
@@ -136,6 +136,21 @@ export default function RegisterScreen() {
     <ScreenContainer scrollable withPadding contentContainerStyle={styles.container}>
       {/* Header */}
       <View style={styles.header}>
+        <View
+          style={[
+            styles.badge,
+            {
+              backgroundColor: colors.accentSubtle,
+              borderColor: isDark ? colors.border : colors.accentSubtle,
+            },
+          ]}
+        >
+          <Icon name="heart" size={13} color={colors.accentSoft} style={styles.badgeIcon} />
+          <Typography variant="label" color={colors.accentSoft}>
+            LoveByte
+          </Typography>
+        </View>
+
         <Typography variant="title" style={styles.title}>
           Create Account
         </Typography>
@@ -157,6 +172,7 @@ export default function RegisterScreen() {
             ]}
             accessibilityRole="alert"
           >
+            <Icon name="alert-circle" size={16} color={colors.error} style={styles.bannerIcon} />
             <Typography variant="caption" color={colors.error} style={styles.bannerText}>
               {apiError}
             </Typography>
@@ -241,13 +257,27 @@ export default function RegisterScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: 'space-between',
-    paddingVertical: Spacing.xl,
-    minHeight: '100%',
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingVertical: Spacing.lg,
+    paddingBottom: Spacing.xxl + Spacing.lg,
   },
   header: {
-    paddingTop: Spacing.lg,
-    marginBottom: Spacing.lg,
+    paddingTop: Spacing.sm,
+    marginBottom: Spacing.base,
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: Spacing.sm + 2,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    marginBottom: Spacing.md,
+  },
+  badgeIcon: {
+    marginRight: Spacing.xs,
   },
   title: {
     marginBottom: Spacing.xs,
@@ -257,13 +287,19 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.base,
   },
   errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     marginBottom: Spacing.md,
   },
+  bannerIcon: {
+    marginRight: Spacing.sm,
+  },
   bannerText: {
+    flex: 1,
     lineHeight: 18,
     fontWeight: '500',
   },

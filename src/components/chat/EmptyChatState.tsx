@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Typography } from '@/components/ui/Typography';
 import { Button } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
 import { Spacing, BorderRadius } from '@/constants/spacing';
 
 export interface EmptyChatStateProps {
@@ -37,9 +38,7 @@ export function EmptyChatState({ onStartConversation }: EmptyChatStateProps) {
           },
         ]}
       >
-        <Typography variant="title" color={colors.accent} style={styles.heartGlyph}>
-          ♥
-        </Typography>
+        <Icon name="heart" size={32} color={colors.accent} />
       </View>
 
       <Typography variant="title" align="center" style={styles.title}>
@@ -57,6 +56,7 @@ export function EmptyChatState({ onStartConversation }: EmptyChatStateProps) {
 
       <Button
         title="Start Conversation"
+        icon="plus"
         variant="primary"
         size="lg"
         onPress={onStartConversation}

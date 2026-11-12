@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Typography } from '@/components/ui/Typography';
+import { Icon } from '@/components/ui/Icon';
 import { Spacing, BorderRadius, Shadows } from '@/constants/spacing';
 import type { ClientMessage } from '@/context/chatTypes';
 
@@ -197,8 +198,9 @@ export function MessageActionModal({
                       accessibilityRole="button"
                       accessibilityLabel="Retry sending message"
                     >
+                      <Icon name="refresh" size={18} color={colors.accent} style={styles.actionIcon} />
                       <Typography variant="bodyMedium" color={colors.accent}>
-                        ↻ Retry Sending
+                        Retry Sending
                       </Typography>
                     </TouchableOpacity>
                   )}
@@ -211,8 +213,9 @@ export function MessageActionModal({
                       accessibilityRole="button"
                       accessibilityLabel="Edit message"
                     >
+                      <Icon name="edit" size={18} color={colors.textPrimary} style={styles.actionIcon} />
                       <Typography variant="bodyMedium" color={colors.textPrimary}>
-                        ✎ Edit Message
+                        Edit Message
                       </Typography>
                     </TouchableOpacity>
                   )}
@@ -225,8 +228,9 @@ export function MessageActionModal({
                       accessibilityRole="button"
                       accessibilityLabel="Delete message"
                     >
+                      <Icon name="trash" size={18} color={colors.error} style={styles.actionIcon} />
                       <Typography variant="bodyMedium" color={colors.error}>
-                        🗑 Delete Message
+                        Delete Message
                       </Typography>
                     </TouchableOpacity>
                   )}
@@ -281,8 +285,14 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 48,
     paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  actionIcon: {
+    marginRight: Spacing.md,
   },
   cancelRow: {
     paddingVertical: Spacing.md,

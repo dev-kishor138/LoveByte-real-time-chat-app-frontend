@@ -11,6 +11,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { Typography } from '@/components/ui/Typography';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
 import { Spacing, BorderRadius, Shadows } from '@/constants/spacing';
 import { validatePartnerEmail } from '@/utils/validation';
 import { useAuth } from '@/context/AuthContext';
@@ -89,10 +90,21 @@ export function StartConversationModal({
             isDark ? Shadows.none : Shadows.medium,
           ]}
         >
-          {/* Header */}
-          <Typography variant="title" style={styles.title}>
-            Start Conversation
-          </Typography>
+          {/* Header Row */}
+          <View style={styles.headerRow}>
+            <Typography variant="title" style={styles.title}>
+              Start Conversation
+            </Typography>
+            <TouchableOpacity
+              onPress={handleClose}
+              disabled={isSubmitting}
+              style={styles.closeButton}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+            >
+              <Icon name="x" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
 
           <Typography
             variant="body"
@@ -163,9 +175,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: Spacing.xl,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.xs,
+  },
+  closeButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: -Spacing.xs,
+    marginTop: -Spacing.xs,
+  },
   title: {
     fontSize: 22,
-    marginBottom: Spacing.xs,
+    marginBottom: 0,
   },
   subtitle: {
     fontSize: 14,

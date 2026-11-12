@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Typography } from '@/components/ui/Typography';
+import { Avatar } from '@/components/ui/Avatar';
 import { Spacing, BorderRadius } from '@/constants/spacing';
 import type { Conversation } from '@/services/api/types';
 import { usePartnerPresence } from '@/hooks/usePartnerPresence';
@@ -68,38 +69,13 @@ export function ConversationItem({
       accessibilityLabel={`Conversation with ${displayName}`}
     >
       {/* Avatar Container with Online Indicator */}
-      <View style={styles.avatarWrapper}>
-        <View
-          style={[
-            styles.avatar,
-            {
-              backgroundColor: colors.accentSubtle,
-              borderColor: isDark ? colors.border : colors.accentSubtle,
-            },
-          ]}
-        >
-          <Typography
-            variant="subtitle"
-            color={colors.accentSoft}
-            style={styles.avatarText}
-          >
-            {monogram}
-          </Typography>
-        </View>
-
-        {/* Presence Indicator Dot */}
-        {isOnline && (
-          <View
-            style={[
-              styles.onlineDot,
-              {
-                backgroundColor: colors.success,
-                borderColor: colors.surface,
-              },
-            ]}
-          />
-        )}
-      </View>
+      <Avatar
+        name={displayName}
+        size={48}
+        isOnline={isOnline}
+        showPresence={true}
+        style={styles.avatarWrapper}
+      />
 
       {/* Conversation Details */}
       <View style={styles.contentContainer}>

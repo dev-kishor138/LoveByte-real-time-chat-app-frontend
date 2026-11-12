@@ -1556,13 +1556,96 @@ describe('Chat State & Hook Lifecycle Orchestration (FINDING-06)', () => {
       sessionManager._resetForTesting();
     });
 
-    it('offline message send: persists to messageQueue with pending status when socket disconnected', async () => {
+    it('decoupled message send: sends successfully via REST while socket is disconnected and reconciles state (Phase 1)', async () => {
       let messagesState: ClientMessage[] = [];
       const mutationId = '00000000-0000-0000-0000-000000000099';
       const nowIso = '2026-11-10T15:00:00.000Z';
 
-      // Simulate offline send logic
-      const isOnline = false;
+      // Socket is explicitly disconnected
+      assert.strictEqual(socketClient.isConnected(), false, 'Socket must be disconnected');
+
+      const optimisticMsg: ClientMessage = {
+        id: mutationId,
+        tempId: mutationId,
+        clientMutationId: mutationId,
+        conversationId: mockConvId,
+        senderId: mockUser1,
+        type: 'TEXT',
+        content: 'Decoupled REST note to partner',
+        fileKey: null,
+        fileMime: null,
+        fileSize: null,
+        isEdited: false,
+        editedAt: null,
+        isDeleted: false,
+        readAt: null,
+        createdAt: nowIso,
+        updatedAt: nowIso,
+        localStatus: 'sending',
+      };
+
+      const queuedItem: QueuedMessage = {
+        id: mutationId,
+        clientMutationId: mutationId,
+        conversationId: mockConvId,
+        senderId: mockUser1,
+        type: 'TEXT',
+        content: 'Decoupled REST note to partner',
+        createdAt: nowIso,
+        localStatus: 'sending',
+        retryCount: 0,
+      };
+
+      await messageQueue.enqueue(queuedItem);
+      messagesState = [...messagesState, optimisticMsg];
+
+      // Mock REST send success
+      let capturedPayload: any = null;
+      chatApi.sendMessage = async (payload) => {
+        capturedPayload = payload;
+        return {
+          id: 'server-canonical-99',
+          conversationId: payload.conversationId,
+          senderId: mockUser1,
+          type: 'TEXT',
+          content: payload.content,
+          clientMutationId: payload.clientMutationId,
+          fileKey: null,
+          fileMime: null,
+          fileSize: null,
+          isEdited: false,
+          editedAt: null,
+          isDeleted: false,
+          readAt: null,
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        };
+      };
+
+      // Decoupled send proceeds via queueProcessor regardless of socket state
+      const serverMsg = await queueProcessor.processMessage(queuedItem);
+      assert.ok(serverMsg);
+      assert.strictEqual(serverMsg.id, 'server-canonical-99');
+      assert.strictEqual(capturedPayload.clientMutationId, mutationId);
+
+      // Reconcile optimistic message with canonical server response
+      messagesState = reconcileOptimisticMessage(messagesState, serverMsg, mutationId);
+
+      // 1. Verifies message is removed from queue on success
+      const stored = await messageQueue.getQueueForConversation(mockUser1, mockConvId);
+      assert.strictEqual(stored.length, 0, 'Must be dequeued from storage upon successful REST send');
+
+      // 2. Verifies UI state shows sent and canonical ID
+      assert.strictEqual(messagesState.length, 1);
+      assert.strictEqual(messagesState[0].id, 'server-canonical-99');
+      assert.strictEqual(messagesState[0].localStatus, 'sent');
+    });
+
+    it('offline message send: persists to messageQueue with uncertain status and provides retry when REST network call fails (Phase 1)', async () => {
+      let messagesState: ClientMessage[] = [];
+      const mutationId = '00000000-0000-0000-0000-000000000098';
+      const nowIso = '2026-11-10T15:00:00.000Z';
+
       const optimisticMsg: ClientMessage = {
         id: mutationId,
         tempId: mutationId,
@@ -1580,7 +1663,7 @@ describe('Chat State & Hook Lifecycle Orchestration (FINDING-06)', () => {
         readAt: null,
         createdAt: nowIso,
         updatedAt: nowIso,
-        localStatus: isOnline ? 'sending' : 'pending',
+        localStatus: 'sending',
       };
 
       const queuedItem: QueuedMessage = {
@@ -1591,22 +1674,40 @@ describe('Chat State & Hook Lifecycle Orchestration (FINDING-06)', () => {
         type: 'TEXT',
         content: 'Offline note to partner',
         createdAt: nowIso,
-        localStatus: isOnline ? 'sending' : 'pending',
+        localStatus: 'sending',
         retryCount: 0,
       };
 
       await messageQueue.enqueue(queuedItem);
       messagesState = [...messagesState, optimisticMsg];
 
-      // 1. Verifies message is stored in persistent queue
+      // Simulate network failure during REST send (e.g. offline / airplane mode)
+      chatApi.sendMessage = async () => {
+        const networkError = new Error('Network Error: connection refused');
+        (networkError as any).statusCode = 0;
+        throw networkError;
+      };
+
+      // Send fails due to network
+      try {
+        await queueProcessor.processMessage(queuedItem);
+        assert.fail('Should have thrown network error');
+      } catch (err) {
+        const classified = classifySendError(err);
+        assert.strictEqual(classified.status, 'uncertain');
+        assert.strictEqual(classified.isRetryable, true);
+        messagesState = markMessageFailed(messagesState, mutationId, classified.errorMessage, classified.status);
+      }
+
+      // 1. Verifies message is retained in queue with uncertain status
       const stored = await messageQueue.getQueueForConversation(mockUser1, mockConvId);
       assert.strictEqual(stored.length, 1);
       assert.strictEqual(stored[0].clientMutationId, mutationId);
-      assert.strictEqual(stored[0].localStatus, 'pending');
+      assert.strictEqual(stored[0].localStatus, 'uncertain');
 
-      // 2. Verifies UI state shows pending
+      // 2. Verifies UI state shows uncertain status for retry
       assert.strictEqual(messagesState.length, 1);
-      assert.strictEqual(messagesState[0].localStatus, 'pending');
+      assert.strictEqual(messagesState[0].localStatus, 'uncertain');
     });
 
     it('app restart restoration: uncommitted queued messages are restored and sorted chronologically', async () => {

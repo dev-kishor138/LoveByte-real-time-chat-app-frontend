@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ScreenContainer, Typography, Button } from '@/components/ui';
+import { ScreenContainer, Typography, Button, Icon } from '@/components/ui';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Spacing, BorderRadius } from '@/constants/spacing';
 
@@ -10,7 +10,7 @@ export default function WelcomeScreen() {
   const { colors, isDark } = useAppTheme();
 
   return (
-    <ScreenContainer withPadding contentContainerStyle={styles.container}>
+    <ScreenContainer scrollable withPadding contentContainerStyle={styles.container}>
       {/* Top Branding Section */}
       <View style={styles.brandingSection}>
         <View
@@ -47,9 +47,7 @@ export default function WelcomeScreen() {
             },
           ]}
         >
-          <Typography variant="title" color={colors.accent} style={styles.heartGlyph}>
-            ♥
-          </Typography>
+          <Icon name="heart" size={38} color={colors.accent} />
         </View>
       </View>
 
@@ -82,6 +80,7 @@ export default function WelcomeScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    flexGrow: 1,
     justifyContent: 'space-between',
     paddingVertical: Spacing.xl,
   },

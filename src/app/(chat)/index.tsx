@@ -11,6 +11,7 @@ import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Typography } from '@/components/ui/Typography';
 import { Button } from '@/components/ui/Button';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
+import { Icon } from '@/components/ui/Icon';
 import { ConversationItem } from '@/components/chat/ConversationItem';
 import { EmptyChatState } from '@/components/chat/EmptyChatState';
 import { StartConversationModal } from '@/components/chat/StartConversationModal';
@@ -134,9 +135,7 @@ export default function ConversationListScreen() {
               },
             ]}
           >
-            <Typography variant="label" color={colors.accentSoft} style={styles.heartGlyph}>
-              ♥
-            </Typography>
+            <Icon name="heart" size={16} color={colors.accentSoft} />
           </View>
 
           <View>
@@ -162,21 +161,24 @@ export default function ConversationListScreen() {
             accessibilityRole="button"
             accessibilityLabel="Start new conversation"
           >
-            <Typography variant="subtitle" color={colors.accentSoft} style={styles.plusIcon}>
-              +
-            </Typography>
+            <Icon name="plus" size={20} color={colors.accentSoft} />
           </TouchableOpacity>
 
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={handleLogout}
-            style={styles.logoutButton}
+            style={[
+              styles.iconButton,
+              styles.logoutIconButton,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
+            ]}
             accessibilityRole="button"
             accessibilityLabel="Log out"
           >
-            <Typography variant="caption" color={colors.error} style={styles.logoutText}>
-              Logout
-            </Typography>
+            <Icon name="log-out" size={18} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -201,6 +203,7 @@ export default function ConversationListScreen() {
           </Typography>
           <Button
             title="Retry"
+            icon="refresh"
             variant="outline"
             size="md"
             onPress={refresh}
@@ -302,20 +305,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  plusIcon: {
-    fontSize: 24,
-    fontWeight: '400',
-    lineHeight: 26,
-  },
-  logoutButton: {
-    minHeight: 44,
-    minWidth: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.xs,
-  },
-  logoutText: {
-    fontWeight: '600',
+  logoutIconButton: {
+    marginLeft: Spacing.xxs,
   },
   centerContainer: {
     flex: 1,

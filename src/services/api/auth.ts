@@ -25,6 +25,40 @@ export interface RegisterPayload {
  */
 export interface RegisterResponse {
   user: SafeUser;
+  requiresVerification?: boolean;
+  message?: string;
+}
+
+/**
+ * Payload sent to POST /api/auth/verify-email
+ */
+export interface VerifyEmailPayload {
+  email: string;
+  code: string;
+}
+
+/**
+ * Payload sent to POST /api/auth/resend-otp
+ */
+export interface ResendOtpPayload {
+  email: string;
+  type: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET';
+}
+
+/**
+ * Payload sent to POST /api/auth/forgot-password
+ */
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+/**
+ * Payload sent to POST /api/auth/reset-password
+ */
+export interface ResetPasswordPayload {
+  email: string;
+  code: string;
+  newPassword: string;
 }
 
 /**
@@ -149,5 +183,61 @@ export const authApi = {
       }
     );
     return response.data.user;
+  },
+
+  /**
+   * Verifies email using 6-digit OTP code.
+   */
+  async verifyEmail(payload: VerifyEmailPayload): Promise<{ success: boolean; message: string }> {
+    const response = await rawAuthTransport.post<{ success: boolean; message: string }>(
+      '/api/auth/verify-email',
+      {
+        email: payload.email.trim().toLowerCase(),
+        code: payload.code.trim(),
+      }
+    );
+    return response.data;
+  },
+
+  /**
+   * Resends OTP code for email verification or password reset.
+   */
+  async resendOtp(payload: ResendOtpPayload): Promise<{ message: string }> {
+    const response = await rawAuthTransport.post<{ message: string }>(
+      '/api/auth/resend-otp',
+      {
+        email: payload.email.trim().toLowerCase(),
+        type: payload.type,
+      }
+    );
+    return response.data;
+  },
+
+  /**
+   * Submits a forgot password request to receive a 6-digit password reset OTP.
+   */
+  async forgotPassword(payload: ForgotPasswordPayload): Promise<{ message: string }> {
+    const response = await rawAuthTransport.post<{ message: string }>(
+      '/api/auth/forgot-password',
+      {
+        email: payload.email.trim().toLowerCase(),
+      }
+    );
+    return response.data;
+  },
+
+  /**
+   * Resets password using 6-digit reset code and new password.
+   */
+  async resetPassword(payload: ResetPasswordPayload): Promise<{ success: boolean; message: string }> {
+    const response = await rawAuthTransport.post<{ success: boolean; message: string }>(
+      '/api/auth/reset-password',
+      {
+        email: payload.email.trim().toLowerCase(),
+        code: payload.code.trim(),
+        newPassword: payload.newPassword,
+      }
+    );
+    return response.data;
   },
 };

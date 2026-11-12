@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Typography } from './Typography';
+import { Icon } from './Icon';
 import { Spacing, BorderRadius } from '@/constants/spacing';
 import { Typography as TypoTokens } from '@/constants/typography';
 
@@ -95,10 +96,14 @@ export function Input({
             activeOpacity={0.6}
             onPress={() => setIsPasswordVisible(!isPasswordVisible)}
             style={styles.eyeButton}
+            accessibilityRole="button"
+            accessibilityLabel={isPasswordVisible ? 'Hide password' : 'Show password'}
           >
-            <Typography variant="caption" color={colors.accent}>
-              {isPasswordVisible ? 'Hide' : 'Show'}
-            </Typography>
+            <Icon
+              name={isPasswordVisible ? 'eye-off' : 'eye'}
+              size={20}
+              color={isFocused ? colors.accent : colors.textMuted}
+            />
           </TouchableOpacity>
         )}
       </View>
@@ -138,8 +143,11 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   eyeButton: {
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: Spacing.xs,
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: -Spacing.xs,
   },
   feedbackText: {
     marginTop: Spacing.xs,

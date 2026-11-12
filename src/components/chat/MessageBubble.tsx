@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Typography } from '@/components/ui/Typography';
+import { Icon } from '@/components/ui/Icon';
 import { formatTime } from '@/utils/date';
 import type { ClientMessage, MessageDeliveryStatus } from '@/context/chatTypes';
 import { Spacing, BorderRadius } from '@/constants/spacing';
@@ -42,47 +43,42 @@ export function MessageBubble({
     switch (deliveryStatus) {
       case 'pending':
         return (
-          <Typography
-            variant="timestamp"
-            color={colors.bubbleOutgoingTime}
-            style={styles.statusTick}
-            accessibilityLabel="Pending network connection"
+          <TouchableOpacity
+            onPress={() => onRetry?.(message)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="Pending network connection. Tap to retry send."
+            style={styles.statusTickWrapper}
           >
-            ⏳
-          </Typography>
+            <Icon name="clock" size={11} color={colors.bubbleOutgoingTime} />
+          </TouchableOpacity>
         );
       case 'sending':
         return (
-          <Typography
-            variant="timestamp"
-            color={colors.bubbleOutgoingTime}
-            style={styles.statusTick}
+          <View
+            style={styles.statusTickWrapper}
             accessibilityLabel="Sending message"
           >
-            ◷
-          </Typography>
+            <Icon name="clock" size={11} color={colors.bubbleOutgoingTime} />
+          </View>
         );
       case 'sent':
         return (
-          <Typography
-            variant="timestamp"
-            color={colors.bubbleOutgoingTime}
-            style={styles.statusTick}
+          <View
+            style={styles.statusTickWrapper}
             accessibilityLabel="Sent"
           >
-            ✓
-          </Typography>
+            <Icon name="check" size={12} color={colors.bubbleOutgoingTime} />
+          </View>
         );
       case 'read':
         return (
-          <Typography
-            variant="timestamp"
-            color={colors.bubbleOutgoingTime}
-            style={[styles.statusTick, styles.readTick]}
+          <View
+            style={styles.statusTickWrapper}
             accessibilityLabel="Read by partner"
           >
-            ✓✓
-          </Typography>
+            <Icon name="check-all" size={14} color={colors.bubbleOutgoingTime} />
+          </View>
         );
       case 'failed':
         return (
@@ -93,8 +89,9 @@ export function MessageBubble({
             accessibilityRole="button"
             accessibilityLabel="Message failed to send. Tap to retry."
           >
+            <Icon name="alert-circle" size={11} color="#FF8080" style={styles.failedIcon} />
             <Typography variant="timestamp" color="#FF8080" style={styles.failedText}>
-              ! Failed · Tap to retry
+              Failed · Retry
             </Typography>
           </TouchableOpacity>
         );
@@ -103,15 +100,13 @@ export function MessageBubble({
           <TouchableOpacity
             onPress={() => onRetry?.(message)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={styles.failedRow}
             accessibilityRole="button"
             accessibilityLabel="Message delivery uncertain due to network disruption. Tap to retry."
           >
-            <Typography
-              variant="timestamp"
-              color="#FFD166"
-              style={styles.statusTick}
-            >
-              ⚠
+            <Icon name="alert-circle" size={11} color="#FFD166" style={styles.failedIcon} />
+            <Typography variant="timestamp" color="#FFD166" style={styles.failedText}>
+              Tap to retry
             </Typography>
           </TouchableOpacity>
         );
@@ -250,16 +245,19 @@ const styles = StyleSheet.create({
   timestamp: {
     fontSize: 11,
   },
-  statusTick: {
-    fontSize: 11,
-    fontWeight: '700',
-    marginLeft: 1,
-  },
-  readTick: {
-    letterSpacing: -1.5,
+  statusTickWrapper: {
+    marginLeft: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   failedRow: {
-    marginLeft: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 3,
+    gap: 3,
+  },
+  failedIcon: {
+    marginRight: 1,
   },
   failedText: {
     fontSize: 11,

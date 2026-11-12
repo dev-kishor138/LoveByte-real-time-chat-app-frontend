@@ -14,6 +14,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Typography } from '@/components/ui/Typography';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
+import { Icon } from '@/components/ui/Icon';
+import { Avatar } from '@/components/ui/Avatar';
 import { PresenceBadge } from '@/components/chat/PresenceBadge';
 import { MessageBubble } from '@/components/chat/MessageBubble';
 import { DateSeparator } from '@/components/chat/DateSeparator';
@@ -192,11 +194,15 @@ export default function ActiveChatRoomScreen() {
   const keyExtractor = useCallback((item: ClientMessage) => item.id || item.tempId || '', []);
 
   return (
-    <ScreenContainer withPadding={false} contentContainerStyle={styles.container}>
+    <ScreenContainer
+      withPadding={false}
+      keyboardAvoiding={false}
+      contentContainerStyle={styles.container}
+    >
       <KeyboardAvoidingView
         style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <View style={styles.responsiveWrapper}>
           {/* Top Header */}
@@ -216,26 +222,17 @@ export default function ActiveChatRoomScreen() {
               accessibilityRole="button"
               accessibilityLabel="Back to conversations"
             >
-              <Typography variant="bodyMedium" color={colors.accent} style={styles.backText}>
-                ‹ Back
-              </Typography>
+              <Icon name="arrow-left" size={22} color={colors.textPrimary} />
             </TouchableOpacity>
 
             <View style={styles.headerCenter}>
               <View style={styles.partnerInfoRow}>
-                <View
-                  style={[
-                    styles.avatarCircle,
-                    {
-                      backgroundColor: colors.accentSubtle,
-                      borderColor: isDark ? colors.border : colors.accentSubtle,
-                    },
-                  ]}
-                >
-                  <Typography variant="label" color={colors.accentSoft} style={styles.avatarText}>
-                    {partnerMonogram}
-                  </Typography>
-                </View>
+                <Avatar
+                  name={partnerName}
+                  size={38}
+                  isOnline={isOnline}
+                  showPresence={false}
+                />
 
                 <View style={styles.partnerTextGroup}>
                   <Typography variant="bodyMedium" numberOfLines={1} style={styles.headerTitle}>
@@ -275,9 +272,7 @@ export default function ActiveChatRoomScreen() {
                   },
                 ]}
               >
-                <Typography variant="title" color={colors.accent} style={styles.heartGlyph}>
-                  ♥
-                </Typography>
+                <Icon name="heart" size={32} color={colors.accent} />
               </View>
 
               <Typography variant="subtitle" align="center" style={styles.emptyTitle}>
@@ -300,6 +295,8 @@ export default function ActiveChatRoomScreen() {
               keyExtractor={keyExtractor}
               renderItem={renderItem}
               inverted={true}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="interactive"
               onScroll={handleScroll}
               scrollEventThrottle={100}
               onEndReached={() => {
@@ -336,9 +333,7 @@ export default function ActiveChatRoomScreen() {
               accessibilityRole="button"
               accessibilityLabel="Scroll to newest messages"
             >
-              <Typography variant="bodyMedium" color={colors.accent} style={styles.fabIcon}>
-                ↓
-              </Typography>
+              <Icon name="arrow-down" size={20} color={colors.accent} />
 
               {hasNewUnreadWhileScrolled && (
                 <View style={[styles.fabBadge, { backgroundColor: colors.accent }]} />
@@ -399,13 +394,12 @@ const styles = StyleSheet.create({
     minHeight: 56,
   },
   backButton: {
-    minWidth: 60,
-    minHeight: 44,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
-  },
-  backText: {
-    fontSize: 16,
-    fontWeight: '600',
+    alignItems: 'center',
+    marginLeft: -Spacing.xs,
   },
   headerCenter: {
     flex: 1,
@@ -416,18 +410,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
   },
-  avatarCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontWeight: '700',
-    fontSize: 14,
-  },
   partnerTextGroup: {
     alignItems: 'flex-start',
   },
@@ -436,7 +418,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   headerRightPlaceholder: {
-    minWidth: 60,
+    width: 44,
   },
   errorBanner: {
     paddingVertical: Spacing.xs + 2,
@@ -485,9 +467,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: Spacing.base,
     bottom: 74,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
